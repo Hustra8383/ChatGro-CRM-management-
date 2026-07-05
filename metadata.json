@@ -1,0 +1,6 @@
+{
+  "name": "ChatGro CRM",
+  "description": "WhatsApp CRM and Cold Call Tracker to track store details, niches, mobile numbers, voice notes, call recordings, maps, and pipeline stages.",
+  "requestFramePermissions": ["microphone", "geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloudfirestore {
+  match /databases/{database}/documents {
+    // Helper to check if user is logged in
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Leads collection rules
+    match /leads/{leadId} {
+      allow read, write: if isSignedIn();
+
+      // Subcollections
+      match /notes/{noteId} {
+        allow read, write: if isSignedIn();
+      }
+      match /calls/{callId} {
+        allow read, write: if isSignedIn();
+      }
+      match /meetings/{meetingId} {
+        allow read, write: if isSignedIn();
+      }
+      match /reminders/{reminderId} {
+        allow read, write: if isSignedIn();
+      }
+    }
+
+    // Daily stats rules
+    match /daily_stats/{date} {
+      allow read, write: if isSignedIn();
+    }
+  }
+}

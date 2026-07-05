@@ -1,0 +1,123 @@
+{
+  "entities": {
+    "lead": {
+      "title": "Lead",
+      "description": "A business prospect cold called by the founders.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "businessName": { "type": "string" },
+        "ownerName": { "type": "string" },
+        "mobileNumber": { "type": "string" },
+        "whatsappNumber": { "type": "string" },
+        "category": { "type": "string" },
+        "location": { "type": "string" },
+        "source": { "type": "string" },
+        "dateAdded": { "type": "string" },
+        "currentStatus": { "type": "string" },
+        "tags": { "type": "array" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "businessName", "mobileNumber", "currentStatus"]
+    },
+    "note": {
+      "title": "Note",
+      "description": "A detailed log or status note on a specific lead.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "leadId": { "type": "string" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "leadId", "text", "createdAt"]
+    },
+    "call": {
+      "title": "Call Record",
+      "description": "Details about an individual cold call made to a lead.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "leadId": { "type": "string" },
+        "date": { "type": "string" },
+        "status": { "type": "string" },
+        "duration": { "type": "number" },
+        "notes": { "type": "string" },
+        "summary": { "type": "string" },
+        "hasAudio": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "leadId", "date", "status", "createdAt"]
+    },
+    "meeting": {
+      "title": "Meeting Tracker",
+      "description": "Details of scheduled meetings with leads.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "leadId": { "type": "string" },
+        "meetingDate": { "type": "string" },
+        "location": { "type": "string" },
+        "result": { "type": "string" },
+        "nextAction": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "leadId", "meetingDate", "createdAt"]
+    },
+    "reminder": {
+      "title": "Reminder",
+      "description": "A scheduled followup or action item.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "leadId": { "type": "string" },
+        "text": { "type": "string" },
+        "datetime": { "type": "string" },
+        "completed": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "text", "datetime", "completed", "createdAt"]
+    },
+    "daily_stat": {
+      "title": "Daily Stats",
+      "description": "Aggregated daily stats for cold calling progress charting.",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string" },
+        "totalCalls": { "type": "number" },
+        "interested": { "type": "number" },
+        "rejected": { "type": "number" },
+        "followups": { "type": "number" },
+        "meetings": { "type": "number" }
+      },
+      "required": ["date", "totalCalls"]
+    }
+  },
+  "firestore": {
+    "/leads/{leadId}": {
+      "schema": "lead",
+      "description": "Leads repository."
+    },
+    "/leads/{leadId}/notes/{noteId}": {
+      "schema": "note",
+      "description": "Subcollection of notes for a lead."
+    },
+    "/leads/{leadId}/calls/{callId}": {
+      "schema": "call",
+      "description": "Subcollection of calls for a lead."
+    },
+    "/leads/{leadId}/meetings/{meetingId}": {
+      "schema": "meeting",
+      "description": "Subcollection of meetings for a lead."
+    },
+    "/leads/{leadId}/reminders/{reminderId}": {
+      "schema": "reminder",
+      "description": "Subcollection of follow-up reminders."
+    },
+    "/daily_stats/{date}": {
+      "schema": "daily_stat",
+      "description": "Daily metrics summaries for graphing."
+    }
+  }
+}
