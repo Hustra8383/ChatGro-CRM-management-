@@ -87,6 +87,7 @@ export default function LeadModal({ lead, onClose, onSaved }: LeadModalProps) {
   // Reminder form state
   const [reminderText, setReminderText] = useState('');
   const [reminderDate, setReminderDate] = useState('');
+  const [reminderError, setReminderError] = useState<string | null>(null);
 
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -512,8 +513,20 @@ export default function LeadModal({ lead, onClose, onSaved }: LeadModalProps) {
   };
 
   const addReminder = async () => {
-    if (!reminderText || !reminderDate || !lead) return;
+    if (!lead) {
+      setReminderError("Lead details not found. Please try again.");
+      return;
+    }
+    if (!reminderText.trim()) {
+      setReminderError("Please enter a reminder instruction.");
+      return;
+    }
+    if (!reminderDate) {
+      setReminderError("Please select a date and time for the reminder.");
+      return;
+    }
     try {
+      setReminderError(null);
       const payload = {
         text: reminderText,
         datetime: reminderDate,
@@ -527,6 +540,7 @@ export default function LeadModal({ lead, onClose, onSaved }: LeadModalProps) {
       onSaved();
     } catch (err) {
       console.error("Error saving reminder:", err);
+      setReminderError("Failed to save the reminder in the database.");
     }
   };
 
@@ -1629,6 +1643,13 @@ export default function LeadModal({ lead, onClose, onSaved }: LeadModalProps) {
                     />
                   </div>
                 </div>
+
+                {reminderError && (
+                  <div className="text-[11px] font-bold text-red-600 bg-red-50 border border-red-100 p-2.5 rounded-xl flex items-center gap-1.5">
+                    <AlertCircle size={13} />
+                    {reminderError}
+                  </div>
+                )}
 
                 <button
                   type="button"

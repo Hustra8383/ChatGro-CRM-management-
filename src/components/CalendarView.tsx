@@ -1,6 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Lead, Reminder } from '../types';
-import { Bell, Calendar as CalendarIcon, Clock, CheckCircle2, ChevronRight, AlertCircle } from 'lucide-react';
+import { 
+  Bell, 
+  Calendar as CalendarIcon, 
+  Clock, 
+  CheckCircle2, 
+  ChevronRight, 
+  AlertCircle, 
+  Plus, 
+  Check,
+  CalendarCheck
+} from 'lucide-react';
+import { dbService } from '../dbService';
 
 interface CalendarViewProps {
   leads: Lead[];
@@ -26,6 +37,45 @@ export default function CalendarView({
   const startOfWeek = new Date();
   const endOfWeek = new Date();
   endOfWeek.setDate(now.getDate() + 7);
+
+  // Quick form states
+  const [selectedLeadId, setSelectedLeadId] = useState('');
+  const [text, setText] = useState('');
+  const [datetime, setDatetime] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  const handleQuickAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedLeadId) {
+      setError("Please select a target store lead.");
+      return;
+    }
+    if (!text.trim()) {
+      setError("Please write the reminder instruction.");
+      return;
+    }
+    if (!datetime) {
+      setError("Please select date & time.");
+      return;
+    }
+
+    try {
+      setError(null);
+      await dbService.reminders.add(selectedLeadId, {
+        text: text.trim(),
+        datetime,
+        completed: false
+      });
+      setText('');
+      setDatetime('');
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err) {
+      console.error("Error saving quick reminder:", err);
+      setError("Failed to save reminder.");
+    }
+  };
 
   // Group reminders
   const missed: typeof reminders = [];
@@ -69,7 +119,7 @@ export default function CalendarView({
         <div className="flex-1 space-y-2.5 overflow-y-auto max-h-[250px]">
           {list.length === 0 ? (
             <div className="h-full flex items-center justify-center p-4 border border-dashed border-slate-200 rounded-xl">
-              <p className="text-[10px] text-slate-400 font-semibold">No follow-ups schedule</p>
+              <p className="text-[10px] text-slate-400 font-semibold">No follow-ups scheduled</p>
             </div>
           ) : (
             list.map((item) => {
@@ -116,15 +166,90 @@ export default function CalendarView({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-1.5">
-        <Bell size={18} className="text-emerald-600" />
-        <div>
-          <h3 className="text-sm font-bold text-slate-800">Smart CRM Reminders & Follow-up Planner</h3>
-          <p className="text-xs text-slate-500 font-medium">Auto-aggregated reminders for prompt customer followups</p>
+    <div className="space-y-6">
+      {/* Title Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-1.5">
+          <Bell size={18} className="text-emerald-600" />
+          <div>
+            <h3 className="text-sm font-bold text-slate-800">Smart CRM Reminders & Follow-up Planner</h3>
+            <p className="text-xs text-slate-500 font-medium">Auto-aggregated reminders for prompt customer followups</p>
+          </div>
         </div>
       </div>
 
+      {/* Quick Add Smart Reminder Card */}
+      <div className="bg-white border border-slate-200 rounded-[20px] p-5 shadow-3xs max-w-2xl space-y-4">
+        <div className="flex items-center gap-1.5 border-b border-slate-100 pb-2">
+          <CalendarCheck size={16} className="text-emerald-500" />
+          <h4 className="text-xs font-bold text-slate-800">Quick-Schedule a New Follow-up</h4>
+        </div>
+
+        <form onSubmit={handleQuickAdd} className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-slate-500">Target Store Lead *</label>
+              <select
+                value={selectedLeadId}
+                onChange={(e) => setSelectedLeadId(e.target.value)}
+                className="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs font-semibold bg-white"
+              >
+                <option value="">-- Choose Lead --</option>
+                {leads.map(lead => (
+                  <option key={lead.id} value={lead.id}>
+                    {lead.businessName} ({lead.category})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-slate-500">Reminder Instruction *</label>
+              <input
+                type="text"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="e.g. Call Bright Mobiles"
+                className="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs font-semibold bg-white"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-slate-500">Scheduled Date & Time *</label>
+              <input
+                type="datetime-local"
+                value={datetime}
+                onChange={(e) => setDatetime(e.target.value)}
+                className="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs font-semibold bg-white"
+              />
+            </div>
+          </div>
+
+          {error && (
+            <div className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-100 px-3 py-1.5 rounded-xl flex items-center gap-1">
+              <AlertCircle size={12} /> {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-xl flex items-center gap-1">
+              <Check size={12} /> Reminder scheduled successfully!
+            </div>
+          )}
+
+          <div className="flex justify-end pt-1">
+            <button
+              type="submit"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1.5 px-4 rounded-xl text-xs flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+            >
+              <Plus size={14} />
+              Schedule Smart Reminder
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Grid displays */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {renderReminderList(missed, "Overdue", "border-red-200 bg-red-50", "bg-red-100", "text-red-700", AlertCircle)}
         {renderReminderList(today, "Today", "border-yellow-200 bg-yellow-50", "bg-yellow-100", "text-yellow-700", Clock)}
